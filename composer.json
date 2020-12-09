@@ -1,0 +1,19 @@
+{
+    "name": "jkauflin/jjklogin",
+    "description": "JWT PHP based web authentication",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "John J Kauflin",
+            "email": "johnkauflin@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "jkauflin\\jjklogin\\": "src/"
+        }
+    },
+    "require": {}
+}
