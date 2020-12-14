@@ -22,24 +22,21 @@
  * 2020-08-01 JJK   Re-factored to be in the same path as project
  * 2020-08-03 JJK   Re-factored for new error handling
  * 2020-08-04 JJK   Added password set logic, and NewUser function
+ * 2020-12-13 JJK   Updated to be a Composer package.  Move the set of the
+ *                  jjkloginRoot to the parent page
  *============================================================================*/
 var jjklogin = (function () {
     'use strict'
 
     //=================================================================================================================
     // Private variables for the Module
-    // Location of login library
-    var jjkloginRoot = 'vendor/jkauflin/jjklogin/src/'
-    //var jjkloginRoot = 'jjklogin/'
-    //var jjkloginRoot = ''
-
     var userRec = null
     var url
 
     //=================================================================================================================
     // Variables cached from the DOM
     var $document = $(document)
-    var $ajaxError = $document.find(".ajaxError");
+    //var $ajaxError = $document.find(".ajaxError");
     var $LoginModal = $document.find('#LoginModal')
     var $logout = $document.find('#logout')
     var $LoggedIn = $document.find('.username')
@@ -89,7 +86,7 @@ var jjklogin = (function () {
 
     //=================================================================================================================
     // Checks on initial load
-    $ajaxError.html("");
+    //$ajaxError.html("");
     $NewUserButton.hide();
 
     // Check for password reset in the request url
@@ -113,7 +110,7 @@ var jjklogin = (function () {
             //console.log("result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                $ajaxError.html("<b>" + result.error + "</b>");
+                //$ajaxError.html("<b>" + result.error + "</b>");
             } else {
                 userRec = result
                 if (userRec == null ||
@@ -137,7 +134,7 @@ var jjklogin = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            $ajaxError.html("<b>" + "Error in request" + "</b>");
+            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
@@ -145,7 +142,7 @@ var jjklogin = (function () {
     // Module methods
     function loginUser() {
         $LoginDisplay.html("")
-        $ajaxError.html("");
+        //$ajaxError.html("");
         url = jjkloginRoot + 'login.php'
         $.ajax(url, {
             type: 'POST',
@@ -157,7 +154,7 @@ var jjklogin = (function () {
             //console.log("result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                $ajaxError.html("<b>" + result.error + "</b>");
+                //$ajaxError.html("<b>" + result.error + "</b>");
             } else { 
                 userRec = result
                 if (
@@ -185,19 +182,19 @@ var jjklogin = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            $ajaxError.html("<b>" + "Error in request" + "</b>");
+            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
     function logoutUser() {
-        $ajaxError.html("");
+        //$ajaxError.html("");
         url = jjkloginRoot + 'logout.php'
         $.ajax(url, {
             type: 'GET'
         }).done(function (result) {
             if (result.error) {
                 console.log("error = " + result.error);
-                $ajaxError.html("<b>" + result.error + "</b>");
+                //$ajaxError.html("<b>" + result.error + "</b>");
             } else {
                 userRec = null
                 // Add a Login link
@@ -207,7 +204,7 @@ var jjklogin = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            $ajaxError.html("<b>" + "Error in request" + "</b>");
+            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
@@ -216,14 +213,14 @@ var jjklogin = (function () {
         // Add a Login link (in case they kill this modal)
         $LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
         $ResetPasswordDisplay.html("")
-        $ajaxError.html("");
+        //$ajaxError.html("");
         $ResetPasswordModal.modal()
     }
 
     function resetPassword() {
         $LoginModal.modal('hide')
         $ResetPasswordDisplay.html("")
-        $ajaxError.html("");
+        //$ajaxError.html("");
         url = jjkloginRoot + 'passwordReset.php'
         $.ajax(url, {
             type: 'POST',
@@ -235,7 +232,7 @@ var jjklogin = (function () {
             //console.log("result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                $ajaxError.html("<b>" + result.error + "</b>");
+                //$ajaxError.html("<b>" + result.error + "</b>");
             } else {
                 userRec = result
                 $ResetPasswordDisplay.html(userRec.userMessage)
@@ -243,14 +240,14 @@ var jjklogin = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            $ajaxError.html("<b>" + "Error in request" + "</b>");
+            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
     function setPassword() {
         $LoginModal.modal('hide')
         $PasswordDisplay.html("")
-        $ajaxError.html("");
+        //$ajaxError.html("");
         url = jjkloginRoot + 'password.php'
         $.ajax(url, {
             type: 'POST',
@@ -262,7 +259,7 @@ var jjklogin = (function () {
             //console.log("result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                $ajaxError.html("<b>" + result.error + "</b>");
+                //$ajaxError.html("<b>" + result.error + "</b>");
             } else { 
                 userRec = result
                 if (
@@ -282,7 +279,7 @@ var jjklogin = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            $ajaxError.html("<b>" + "Error in request" + "</b>");
+            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
@@ -291,14 +288,14 @@ var jjklogin = (function () {
         $usernameReg.html("")
         $emailAddrReg.html("")
         $userLevelReg.html("")
-        $ajaxError.html("");
+        //$ajaxError.html("");
         $RegisterModal.modal()
     }
 
     function registerUser() {
         $LoginModal.modal('hide')
         $RegisterDisplay.html("")
-        $ajaxError.html("");
+        //$ajaxError.html("");
         url = jjkloginRoot + 'register.php'
         $.ajax(url, {
             type: 'POST',
@@ -310,7 +307,7 @@ var jjklogin = (function () {
             //console.log("result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                $ajaxError.html("<b>" + result.error + "</b>");
+                //$ajaxError.html("<b>" + result.error + "</b>");
             } else {
                 var tempUserRec = result
                 $RegisterDisplay.html(tempUserRec.userMessage)
@@ -319,7 +316,7 @@ var jjklogin = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            $ajaxError.html("<b>" + "Error in request" + "</b>");
+            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
     

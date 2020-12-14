@@ -10,15 +10,21 @@
  *============================================================================*/
 require_once 'vendor/autoload.php'; 
 
+// Get settings and credentials (settings in parent which includes external secrets)
+require_once '../../../jjkloginSettings.php';
+
+/*
 // Common functions
 require_once 'php_secure/commonUtil.php';
 // Common database functions and table record classes
 require_once 'php_secure/hoaDbCommon.php';
 // Login Authentication class
 require_once 'php_secure/jjklogin.php';
-use \jkauflin\jjklogin\LoginAuth;
 // Include database connection credentials from an external includes location
 require_once getSecretsFilename();
+*/
+
+use \jkauflin\jjklogin\LoginAuth;
 // Define a super global constant for the log file (this will be in scope for all functions)
 define("LOG_FILE", "./php.log");
 
