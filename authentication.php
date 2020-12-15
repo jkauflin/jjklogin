@@ -8,10 +8,10 @@
  * 2020-07-25 JJK 	Initial version
  * 2020-07-31 JJK   Re-factor to use new class
  *============================================================================*/
-require_once 'vendor/autoload.php'; 
+require dirname(__FILE__, 4).'/vendor/autoload.php';
 
 // Get settings and credentials (settings in parent which includes external secrets)
-require_once '../../../jjkloginSettings.php';
+//require_once '../../../jjkloginSettings.php';
 
 /*
 // Common functions
