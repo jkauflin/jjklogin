@@ -10,8 +10,9 @@
  *============================================================================*/
 require dirname(__FILE__, 4).'/vendor/autoload.php';
 
-// Get settings and credentials (settings in parent which includes external secrets)
-//require_once '../../../jjkloginSettings.php';
+// Get settings and credentials from a file in a directory outside of public_html
+// (assume 6 levels up from where this package is, including a subfolder in the root)
+require_once dirname(__FILE__, 6).'/external_includes/jjkloginSettings.php';
 
 /*
 // Common functions
