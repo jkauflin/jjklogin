@@ -30,6 +30,7 @@ var jjklogin = (function () {
 
     //=================================================================================================================
     // Private variables for the Module
+    var jjkloginRoot = "vendor/jkauflin/jjklogin/";
     var userRec = null
     var url
 
@@ -39,7 +40,7 @@ var jjklogin = (function () {
     //var $ajaxError = $document.find(".ajaxError");
     var $LoginModal = $document.find('#LoginModal')
     var $logout = $document.find('#logout')
-    var $LoggedIn = $document.find('.username')
+    var $LoggedIn = $document.find('#username')
 
     var $LoginInput = $LoginModal.find('#LoginInput')
     var $password = $LoginModal.find('#password')
@@ -119,16 +120,16 @@ var jjklogin = (function () {
                     userRec.userLevel < 1
                 ) {
                     // Add a Login link
-                    $LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
+                    //$LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
                     // redirect to Login
-                    $LoginModal.modal()
+                    //$LoginModal.modal()
                 } else {
                     $LoggedIn.html('Logged in as ' + userRec.userName)
                     if (userRec.userLevel > 4) {
                         $NewUserButton.show();
                     }
-                    config.loadConfigValues();
-                    config.loadConfigLogoImg();
+                    //config.loadConfigValues();
+                    //config.loadConfigLogoImg();
                 }
             }
         }).fail(function (xhr, status, error) {
@@ -166,7 +167,7 @@ var jjklogin = (function () {
                     // redirect to Login
                     $LoginDisplay.html(userRec.userMessage)
                     // Add a Login link
-                    $LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
+                    //$LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
                     $LoginModal.modal()
                 } else {
                     $LoginModal.modal('hide')
@@ -175,8 +176,8 @@ var jjklogin = (function () {
                     if (userRec.userLevel > 4) {
                         $NewUserButton.show();
                     }
-                    config.loadConfigValues();
-                    config.loadConfigLogoImg();
+                    //config.loadConfigValues();
+                    //config.loadConfigLogoImg();
                 }
             }
         }).fail(function (xhr, status, error) {
@@ -198,8 +199,8 @@ var jjklogin = (function () {
             } else {
                 userRec = null
                 // Add a Login link
-                $LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
-                $LoginModal.modal()
+                //$LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
+                //$LoginModal.modal()
             }
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
@@ -211,7 +212,7 @@ var jjklogin = (function () {
     function forgotPassword() {
         $LoginModal.modal('hide')
         // Add a Login link (in case they kill this modal)
-        $LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
+        //$LoggedIn.html('<a data-toggle="modal" href="#LoginModal">Login</a>')
         $ResetPasswordDisplay.html("")
         //$ajaxError.html("");
         $ResetPasswordModal.modal()
