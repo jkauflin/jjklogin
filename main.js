@@ -129,7 +129,7 @@ var jjkloginMain = (function () {
             dataType: 'json' 
             //dataType: "html"
         }).done(function (result) {
-            console.log("loginUser result = " + result);
+            //console.log("loginUser result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
                 //$ajaxError.html("<b>" + result.error + "</b>");
@@ -142,7 +142,7 @@ var jjkloginMain = (function () {
                     userRec.userLevel < 1
                 ) {
                     // redirect to Login
-                    console.log("userRec.userMessage = "+userRec.userMessage)
+                    //console.log("userRec.userMessage = "+userRec.userMessage)
                     $LoginDisplay.html(userRec.userMessage)
                     $LoginModal.modal()
                 } else {
