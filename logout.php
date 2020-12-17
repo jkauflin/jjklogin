@@ -15,6 +15,7 @@ require_once dirname(__FILE__, 3).'\autoload.php';
 // Get settings and credentials from a file in a directory outside of public_html
 // (assume a settings file in the "external_includes" folder one level up from "public_html"
 require_once dirname(__FILE__, $webRootDirOffset+1).'/external_includes/jjkloginSettings.php';
+require_once 'commonUtil.php';
 
 use \jkauflin\jjklogin\LoginAuth;
 // Define a super global constant for the log file (this will be in scope for all functions)

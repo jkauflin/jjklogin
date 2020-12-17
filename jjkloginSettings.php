@@ -13,7 +13,7 @@ $dbadmin = "";
 $password = "";
 $dbname = "";
 
-$dbUserTableName = "";
+$dbUserTableName = "users";
 
 $cookiePath = '';
 $cookieName = 'jjklogin';

@@ -4,6 +4,7 @@
  *----------------------------------------------------------------------------
  * DESCRIPTION: PHP functions to interact with a database, and security
  *              components for authentication and login
+ * 
  *----------------------------------------------------------------------------
  * Modification History
  * 2020-07-25 JJK 	Initial version
@@ -11,6 +12,7 @@
  * 2020-07-31 JJK   Re-factor as a class
  * 2020-08-04 JJK   Added setPassword, resetPassword, and setUserToken
  * 2020-08-11 JJK   Corrected the cookie/jwt expiration to be 30 days
+ * 2020-12-17 JJK   Updated for composer package
  *============================================================================*/
 namespace jkauflin\jjklogin;
 
@@ -49,7 +51,7 @@ class LoginAuth
                 'expires' =>  time()+60*60*24*30,  // 30 days
                 'path' => $cookiePath,
                 'samesite' => 'strict',
-                //'secure' => TRUE,
+                //'secure' => TRUE,     // Default on web host is TRUE
                 'httponly' => TRUE
             ]);
         }
@@ -57,7 +59,6 @@ class LoginAuth
             //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
         }
     }
-
 
     public static function setUserCookie($conn,$cookieName,$cookiePath,$serverKey,$param) {
         $userRec = new UserRec();
@@ -98,7 +99,7 @@ class LoginAuth
                 'expires' => time()-3600,
                 'path' => $cookiePath,
                 'samesite' => 'strict',
-    //          'secure' => TRUE,
+    //          'secure' => TRUE,        // this is the default on web hosts now
                 'httponly' => TRUE
             ]);
 
@@ -141,7 +142,7 @@ class LoginAuth
         return $userRec;
     }
 
-    public static function resetPassword($conn,$cookieName,$cookiePath,$serverKey,$param,$fromEmailAddress,$passwordResetUrl) {
+    public static function resetPassword($conn,$cookieName,$cookiePath,$serverKey,$param,$fromEmailAddress,$domainUrl) {
         $userRec = new UserRec();
         $userRec->userMessage = 'Error in request';
         
@@ -185,9 +186,9 @@ class LoginAuth
                 if ($user['UserLevel'] < 1) {
                     $userRec->userMessage = 'User is not authorized (contact Administrator)';
                 } else {
-                    $subject = "GRHA HOADB password reset";
+                    $subject = "Password reset";
                     $messageStr = 'Click the following to enter a new password for username [' . $user['UserName'] . ']:  ' 
-                        . $passwordResetUrl . $user['RegistrationCode'];
+                        . $domainUrl . '?resetPass=' . $user['RegistrationCode'];
 
                     //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", messageStr = $messageStr " . PHP_EOL, 3, LOG_FILE);
                     sendHtmlEMail($user['UserEmailAddr'],$subject,$messageStr,$fromEmailAddress);
@@ -248,7 +249,7 @@ class LoginAuth
         return $userRec;
     }
 
-    public static function registerUser($conn,$cookieName,$cookiePath,$serverKey,$param,$fromEmailAddress,$passwordResetUrl) {
+    public static function registerUser($conn,$cookieName,$cookiePath,$serverKey,$param,$fromEmailAddress,$domainUrl) {
         $userRec = new UserRec();
         $userRec->userMessage = 'Error in request';
 
@@ -272,6 +273,8 @@ class LoginAuth
                 $password = password_hash($tempPassword, PASSWORD_DEFAULT);
                 // sanitizing email(Remove unexpected symbol like <,>,?,#,!, etc.)
                 $email = filter_var($param->emailAddrReg, FILTER_SANITIZE_EMAIL); 
+                // Default the user level to 1 (Leave it up to Admin to manually change in database)
+                $userLevel = 1;
 
                 $sql = 'INSERT INTO users (UserEmailAddr,UserPassword,UserName,UserLevel,RegistrationCode) VALUES(?,?,?,?,?); ';
                 $stmt = $conn->prepare($sql);
@@ -279,21 +282,23 @@ class LoginAuth
                     $email,
                     $password,
                     $username,
-                    $param->userLevelReg,
+                    $userLevel,
                     $registrationCode);
                 $stmt->execute();
                 $stmt->close();
 
                 // Send email
-                $subject = "GRHA HOADB new user registration";
+                $subject = "User registration";
                 $messageStr = 'A new user account has been created for you.  Click the following to enter a new password for username [' . 
-                    $username . ']:  ' . $passwordResetUrl . $registrationCode;
-        
-                //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", messageStr = $messageStr " . PHP_EOL, 3, LOG_FILE);
-                sendHtmlEMail($email,$subject,$messageStr,$fromEmailAddress);
+                    $username . ']:  ' . $domainUrl . '?resetPass=' . $registrationCode;
 
-                // set a token and a cookie or just make them login?
-                $userRec->userMessage = 'User created successfully (and email sent)';
+                //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", messageStr = $messageStr " . PHP_EOL, 3, LOG_FILE);
+                $sendMailSuccess = sendHtmlEMail($email,$subject,$messageStr,$fromEmailAddress);
+                if (!$sendMailSuccess) {
+                    $userRec->userMessage = 'User registered successfully (but email FAILED)';
+                } else {
+                    $userRec->userMessage = 'User registered successfully (and email sent)';
+                }
             }
         }
         catch(Exception $e) {

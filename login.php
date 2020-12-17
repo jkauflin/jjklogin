@@ -15,6 +15,7 @@ require_once dirname(__FILE__, 3).'\autoload.php';
 // Get settings and credentials from a file in a directory outside of public_html
 // (assume a settings file in the "external_includes" folder one level up from "public_html"
 require_once dirname(__FILE__, $webRootDirOffset+1).'/external_includes/jjkloginSettings.php';
+require_once 'commonUtil.php';
 
 use \jkauflin\jjklogin\LoginAuth;
 // Define a super global constant for the log file (this will be in scope for all functions)
@@ -30,7 +31,13 @@ try {
         $userRec = LoginAuth::initUserRec();
         $userRec->userMessage = 'Username and Password are required';
     } else {
-        $conn = getConn($host, $dbadmin, $password, $dbname);
+    	// User variables set in the db connection credentials include and open a connection
+    	$conn = new mysqli($host, $dbadmin, $password, $dbname);
+    	// Check connection
+    	if ($conn->connect_error) {
+            error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", Connection failed: " . $conn->connect_error . PHP_EOL, 3, LOG_FILE);
+    		die("Connection failed: " . $conn->connect_error);
+    	}
         $userRec = LoginAuth::setUserCookie($conn,$cookieName,$cookiePath,$serverKey,$param);
         $conn->close();
     }
