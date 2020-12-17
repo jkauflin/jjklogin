@@ -44,6 +44,7 @@ var jjkloginMain = (function () {
     var $LoggedIn = $document.find('#username')
 
     var $LoginInput = $LoginModal.find('#LoginInput')
+    var $username = $LoginModal.find('#username')
     var $password = $LoginModal.find('#password')
     var $LoginButton = $LoginModal.find('#LoginButton')
     var $LoginDisplay = $LoginModal.find('#LoginDisplay')
@@ -109,6 +110,8 @@ var jjkloginMain = (function () {
                 userRec.userName == '' ||
                 userRec.userLevel < 1) 
             {
+                $username.val('');
+                $password.val('');
                 $LoginModal.modal()
             } else {
                 $LoggedIn.html('Logged in as ' + userRec.userName)
