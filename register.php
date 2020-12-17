@@ -33,8 +33,6 @@ try {
             $userRec->userMessage = 'Username is required';
         } else if (empty($param->emailAddrReg)) {
             $userRec->userMessage = 'Email address is required';
-        } else if (empty($param->userLevelReg)) {
-            $userRec->userMessage = 'User Level is required';
         } else {
         	// User variables set in the db connection credentials include and open a connection
         	$conn = new mysqli($host, $dbadmin, $password, $dbname);
