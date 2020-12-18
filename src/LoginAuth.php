@@ -13,6 +13,7 @@
  * 2020-08-04 JJK   Added setPassword, resetPassword, and setUserToken
  * 2020-08-11 JJK   Corrected the cookie/jwt expiration to be 30 days
  * 2020-12-17 JJK   Updated for composer package and general use
+ * 2020-12-18 JJK   Uncommented the 'secure' cookie setting for Production
  *============================================================================*/
 namespace jkauflin\jjklogin;
 
@@ -51,7 +52,7 @@ class LoginAuth
                 'expires' =>  time()+60*60*24*30,  // 30 days
                 'path' => $cookiePath,
                 'samesite' => 'strict',
-                //'secure' => TRUE,     // Default on web host is TRUE
+                'secure' => TRUE,     // Default on web host is TRUE
                 'httponly' => TRUE
             ]);
         }
@@ -99,7 +100,7 @@ class LoginAuth
                 'expires' => time()-3600,
                 'path' => $cookiePath,
                 'samesite' => 'strict',
-    //          'secure' => TRUE,        // this is the default on web hosts now
+                'secure' => TRUE,        // this is the default on web hosts now
                 'httponly' => TRUE
             ]);
 
