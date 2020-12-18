@@ -123,7 +123,6 @@ var jjkloginMain = (function () {
     // Module methods
     function loginUser() {
         $LoginDisplay.html("")
-        //$ajaxError.html("");
         url = jjkloginRoot + 'login.php'
         $.ajax(url, {
             type: 'POST',
@@ -135,7 +134,6 @@ var jjkloginMain = (function () {
             //console.log("loginUser result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                //$ajaxError.html("<b>" + result.error + "</b>");
             } else { 
                 userRec = result
                 if (
@@ -158,19 +156,16 @@ var jjkloginMain = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
     function logoutUser() {
-        //$ajaxError.html("");
         url = jjkloginRoot + 'logout.php'
         $.ajax(url, {
             type: 'GET'
         }).done(function (result) {
             if (result.error) {
                 console.log("error = " + result.error);
-                //$ajaxError.html("<b>" + result.error + "</b>");
             } else {
                 userRec = null
                 $LoggedIn.html('');
@@ -180,7 +175,6 @@ var jjkloginMain = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
@@ -204,7 +198,6 @@ var jjkloginMain = (function () {
             //console.log("result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                //$ajaxError.html("<b>" + result.error + "</b>");
             } else {
                 userRec = result
                 $ResetPasswordDisplay.html(userRec.userMessage)
@@ -212,7 +205,6 @@ var jjkloginMain = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
@@ -230,7 +222,6 @@ var jjkloginMain = (function () {
             //console.log("result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                //$ajaxError.html("<b>" + result.error + "</b>");
             } else { 
                 userRec = result
                 if (
@@ -252,7 +243,6 @@ var jjkloginMain = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
 
@@ -266,7 +256,6 @@ var jjkloginMain = (function () {
     function registerUser() {
         $LoginModal.modal('hide')
         $RegisterDisplay.html("")
-        //$ajaxError.html("");
         url = jjkloginRoot + 'register.php'
         $.ajax(url, {
             type: 'POST',
@@ -278,7 +267,6 @@ var jjkloginMain = (function () {
             //console.log("result = " + result);
             if (result.error) {
                 console.log("error = " + result.error);
-                //$ajaxError.html("<b>" + result.error + "</b>");
             } else {
                 var tempUserRec = result
                 $RegisterDisplay.html(tempUserRec.userMessage)
@@ -287,7 +275,6 @@ var jjkloginMain = (function () {
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
             userRec = null
-            //$ajaxError.html("<b>" + "Error in request" + "</b>");
         })
     }
     

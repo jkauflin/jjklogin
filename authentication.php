@@ -12,13 +12,14 @@
  *============================================================================*/
 // Define a super global constant for the log file (this will be in scope for all functions)
 define("LOG_FILE", "./php.log");
-// Figure out how many levels up to get to the "public_html" root folder
-$webRootDirOffset = substr_count(strstr(dirname(__FILE__),"public_html"),DIRECTORY_SEPARATOR) + 1;
 // Assume /vendor is 3 levels up from a file in the package root
 require_once dirname(__FILE__, 3) . DIRECTORY_SEPARATOR . 'autoload.php';
+// Figure out how many levels up to get to the "public_html" root folder
+$webRootDirOffset = substr_count(strstr(dirname(__FILE__),"public_html"),DIRECTORY_SEPARATOR) + 1;
 // Get settings and credentials from a file in a directory outside of public_html
 // (assume a settings file in the "external_includes" folder one level up from "public_html"
-$settingsFile = dirname(__FILE__, $webRootDirOffset+1).DIRECTORY_SEPARATOR.'external_includes'.DIRECTORY_SEPARATOR.'jjkloginSettings.php';
+$settingsFilename = 'jjkloginSettings.php';
+$settingsFile = dirname(__FILE__, $webRootDirOffset+1).DIRECTORY_SEPARATOR.'external_includes'.DIRECTORY_SEPARATOR.$settingsFilename;
 require_once $settingsFile;
 require_once 'commonUtil.php';
 

@@ -12,7 +12,7 @@
  * 2020-07-31 JJK   Re-factor as a class
  * 2020-08-04 JJK   Added setPassword, resetPassword, and setUserToken
  * 2020-08-11 JJK   Corrected the cookie/jwt expiration to be 30 days
- * 2020-12-17 JJK   Updated for composer package
+ * 2020-12-17 JJK   Updated for composer package and general use
  *============================================================================*/
 namespace jkauflin\jjklogin;
 
@@ -186,7 +186,7 @@ class LoginAuth
                 if ($user['UserLevel'] < 1) {
                     $userRec->userMessage = 'User is not authorized (contact Administrator)';
                 } else {
-                    $subject = "Password reset";
+                    $subject = "Password Reset";
                     $messageStr = 'Click the following to enter a new password for username [' . $user['UserName'] . ']:  ' 
                         . $domainUrl . '?resetPass=' . $user['RegistrationCode'];
 
@@ -288,7 +288,7 @@ class LoginAuth
                 $stmt->close();
 
                 // Send email
-                $subject = "User registration";
+                $subject = "User Registration";
                 $messageStr = 'A new user account has been created for you.  Click the following to enter a new password for username [' . 
                     $username . ']:  ' . $domainUrl . '?resetPass=' . $registrationCode;
 
