@@ -40,7 +40,7 @@ try {
             error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", Connection failed: " . $conn->connect_error . PHP_EOL, 3, LOG_FILE);
     		die("Connection failed: " . $conn->connect_error);
     	}
-        $userRec = LoginAuth::resetPassword($conn,$cookieName,$cookiePath,$serverKey,$param,$fromEmailAddress,$passwordResetUrl);
+        $userRec = LoginAuth::resetPassword($conn,$cookieName,$cookiePath,$serverKey,$param,$fromEmailAddress,$domainUrl);
         $conn->close();
     }
 

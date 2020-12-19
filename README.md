@@ -38,7 +38,7 @@ Internally it uses CDN includes for [JQuery](https://jquery.com/) and [Bootstrap
 
 
 ## Usage
-### HTML page modifications
+### HTML page usage
 After including the ``jjklogin.js`` in a web page, include a link with an id of ``login`` to re-direct to the project page for authentication functions:
 
     <a class="nav-link" id="login" href="#" role="button">login</a>
@@ -51,7 +51,7 @@ If desired, include a DIV with a ``username`` id to display the username after l
 
         <div id="username" class="float-right"></div>
 
-### Javascript modifications
+### Javascript use
 After user authentication, a ``userRec`` variable is kept in the javascript, and the following functions are available:
 - isUserLoggedIn
 - getUserName
@@ -68,6 +68,17 @@ To access the function from other javascript modules simple use the ``jjklogin``
         }
     }
 
+### PHP usage
+The javascript ``userRec`` variable is helpful for adjusting the display but additional security checks should be done in any PHP files doing service work.  The PHP should get the ``UserRec`` directly and check authentication and user level before allowing functions.  Here is an example of code that can be used in the PHP to throw an exception if the user is not authorized:
+
+    $userRec = LoginAuth::getUserRec($cookieName,$cookiePath,$serverKey);
+    if ($userRec->userName == null || $userRec->userName == '') {
+        throw new Exception('User is NOT logged in', 500);
+    }
+    if ($userRec->userLevel < 1) {
+        throw new Exception('User is NOT authorized (contact Administrator)', 500);
+    }
+
 ## Security
 This project uses [firebase/php-jwt](https://github.com/firebase/php-jwt) to encode and decode JSON Web Tokens (JWT) in PHP, conforming to RFC 7519. Look in the ``src/LoginAuth.php`` class to see how this project securely uses cookies to store the JWT tokens, including:
 - ``'samesite' => 'strict'`` to prevent cross-site scripting
@@ -75,6 +86,8 @@ This project uses [firebase/php-jwt](https://github.com/firebase/php-jwt) to enc
 - ``'httponly' => TRUE`` to insure non-javascript, HTTP only handling of cookies
 
 Registration and Password Set is done via confirmed Email links with registration tokens, and Passwords are encrypted with the newest PHP ``password_hash`` function
+
+User authorization and level should be checked before allowing any service functions (**see PHP usage above**).  DO NOT count on the javascript userRec variable, use the direct PHP lookup to get the ``UserRec`` from the cookie to double-check authorization before allowing any function
 
 If you feel these measures still have vulnerabilities, please do not use this project
 

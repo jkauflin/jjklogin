@@ -24,6 +24,7 @@
  * 2020-08-04 JJK   Added password set logic, and NewUser function
  * 2020-12-13 JJK   Updated to be a Composer package.  Move the set of the
  *                  jjkloginRoot to the parent page
+ * 2020-12-19 JJK   Corrected some navigation issues and added HomeNav
  *============================================================================*/
 var jjkloginMain = (function () {
     'use strict'
@@ -40,6 +41,7 @@ var jjkloginMain = (function () {
     var $document = $(document)
     //var $ajaxError = $document.find(".ajaxError");
     var $LoginModal = $document.find('#LoginModal')
+    var $HomeNav = $document.find('#HomeNav')
     var $logout = $document.find('#logout')
     var $LoggedIn = $document.find('#username')
 
@@ -74,17 +76,45 @@ var jjkloginMain = (function () {
     //=================================================================================================================
     // Bind events
     $LoginButton.on('click', loginUser)
-    // Accept input change on Enter (but not on touch devices because it won't turn off the text input)
-    if (!isTouchDevice) {
-        $password.change(loginUser);
-    }
-
+    $HomeNav.on('click', redirectHome)
     $logout.on('click', logoutUser)
     $ForgotPassword.on('click', forgotPassword)
     $ResetPasswordButton.on('click', resetPassword)
     $PasswordButton.on('click', setPassword)
     $NewUserButton.on('click', displayRegistration)
     $RegisterButton.on('click', registerUser)
+
+    // Accept input on Enter (but not on touch devices because it won't turn off the text input)
+    if (!isTouchDevice) {
+        document.getElementById("password").addEventListener("keyup", function(event) {
+          if (event.keyCode === 13) {
+            event.preventDefault();
+            loginUser();
+          }
+        });
+        document.getElementById("emailAddrReset").addEventListener("keyup", function(event) {
+          if (event.keyCode === 13) {
+            event.preventDefault();
+            resetPassword();
+          }
+        });
+        document.getElementById("password_2").addEventListener("keyup", function(event) {
+          if (event.keyCode === 13) {
+            event.preventDefault();
+            setPassword();
+          }
+        });
+        document.getElementById("emailAddrReg").addEventListener("keyup", function(event) {
+          if (event.keyCode === 13) {
+            event.preventDefault();
+            registerUser();
+          }
+        });
+    }
+
+    function redirectHome() {
+        window.location.href = firstPath;
+    }
 
     //=================================================================================================================
     // Checks on initial load
