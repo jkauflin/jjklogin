@@ -46,11 +46,6 @@ var jjklogin = (function () {
 
     //=================================================================================================================
     // Checks on initial load
- 
-    //console.log("window.location.href = "+window.location.href);
-    //const firstPath = window.location.pathname.split('/')[1];
-    //console.log("first Path = "+firstPath);
-
     var urlParam = 'resetPass';
     var results = new RegExp('[\?&]' + urlParam + '=([^&#]*)').exec(window.location.href);
     if (results != null) {

@@ -25,6 +25,7 @@
  * 2020-12-13 JJK   Updated to be a Composer package.  Move the set of the
  *                  jjkloginRoot to the parent page
  * 2020-12-19 JJK   Corrected some navigation issues and added HomeNav
+ * 2020-12-21 JJK   Corrected set of webRootPath
  *============================================================================*/
 var jjkloginMain = (function () {
     'use strict'
@@ -113,16 +114,20 @@ var jjkloginMain = (function () {
     }
 
     function redirectHome() {
-        window.location.href = firstPath;
+        window.location.href = webRootPath;
     }
 
     //=================================================================================================================
     // Checks on initial load
 
-    // Check for password reset in the request url
+    // Get the path of the root web page (for re-directing home)
     //console.log("window.location.href = "+window.location.href);
-    const firstPath = '/'+window.location.pathname.split('/')[1];
+    //console.log("window.location.pathname = "+window.location.pathname);
+    var tempPath = window.location.pathname;
+    var strPos = tempPath.indexOf('/vendor/jkauflin/jjklogin');
+    const webRootPath = tempPath.substr(0,strPos);
 
+    // Check for password reset in the request url
     var urlParam = 'resetPass';
     var results = new RegExp('[\?&]' + urlParam + '=([^&#]*)').exec(window.location.href);
     if (results != null) {
@@ -180,7 +185,7 @@ var jjkloginMain = (function () {
                     $LoginModal.modal('hide')
                     //console.log("After authentication, userName = " + userRec.userName + ", level = " + userRec.userLevel)
                     // re-direct back to main page
-                    window.location.href = firstPath;
+                    redirectHome();
                 }
             }
         }).fail(function (xhr, status, error) {
@@ -200,7 +205,7 @@ var jjkloginMain = (function () {
                 userRec = null
                 $LoggedIn.html('');
                 // re-direct back to main page
-                window.location.href = firstPath;
+                redirectHome();
             }
         }).fail(function (xhr, status, error) {
             console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
@@ -267,7 +272,7 @@ var jjkloginMain = (function () {
                     $PasswordModal.modal('hide')
                     $LoggedIn.html('Logged in as ' + userRec.userName)
                     // re-direct back to main page
-                    window.location.href = firstPath;
+                    redirectHome();
                 }
             }
         }).fail(function (xhr, status, error) {

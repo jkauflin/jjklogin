@@ -8,19 +8,18 @@
  * 2020-12-13 JJK 	Initial version
  *============================================================================*/
 
-$host = "localhost";
-$dbadmin = "<set to DB admin user>";
-$password = "<set to DB password>";
-$dbname = "<set to DB name>";
-$dbUserTableName = "users";
+$hostJJKLogin = "localhost";
+$dbadminJJKLogin = "<set to DB admin user>";
+$passwordJJKLogin = "<set to DB password>";
+$dbnameJJKLogin = "<set to DB name>";
+$dbUserTableNameJJKLogin = "users";
 
-$cookiePath = '/<set to path of main web site>';
-$cookieName = 'jjklogin';
-$serverKey = "<set to a good long random key string value>";
-$scheduledJobKey = "";
+$cookiePathJJKLogin = '/<set to path of main web site>';
+$cookieNameJJKLogin = 'jjklogin';
+$serverKeyJJKLogin = "<set to a good long random key string value>";
+$scheduledJobKeyJJKLogin = "";
 
-$domainUrl = 'https://<set to main web site url>';
-$fromEmailAddress = "<set to FROM address for user registration emails>";
-$adminEmailList = "<set to admin email address>";
-
+$domainUrlJJKLogin = 'https://<set to main web site url>';
+$fromEmailAddressJJKLogin = "<set to FROM address for user registration emails>";
+$adminEmailListJJKLogin = "<set to admin email address>";
 ?>
