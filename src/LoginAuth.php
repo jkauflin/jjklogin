@@ -273,8 +273,8 @@ class LoginAuth
                 $password = password_hash($tempPassword, PASSWORD_DEFAULT);
                 // sanitizing email(Remove unexpected symbol like <,>,?,#,!, etc.)
                 $email = filter_var($param->emailAddrReg, FILTER_SANITIZE_EMAIL); 
-                // Default the user level to 1 (Leave it up to Admin to manually change in database)
-                $userLevel = 1;
+                // Default the user level to 0 (Leave it up to Admin to manually change in database)
+                $userLevel = 0;
 
                 $sql = 'INSERT INTO users (UserEmailAddr,UserPassword,UserName,UserLevel,RegistrationCode) VALUES(?,?,?,?,?); ';
                 $stmt = $conn->prepare($sql);
