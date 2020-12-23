@@ -24,6 +24,7 @@
  * 2020-08-04 JJK   Added password set logic, and NewUser function
  * 2020-12-13 JJK   Updated to be a Composer package.  Move the set of the
  *                  jjkloginRoot to the parent page
+ * 2020-12-22 JJK   Added login event userJJKLoginAuth
  *============================================================================*/
 var jjklogin = (function () {
     'use strict'
@@ -39,71 +40,22 @@ var jjklogin = (function () {
     var $document = $(document)
     var $login = $document.find('#login')
     var $LoggedIn = $document.find('#username')
-    var $jjkloginEventElement = $document.find('#jjkloginEventElement')
+
+    // Create an event to tell calling applications that a user has authenticated
+    var userJJKLoginAuthEvent = new CustomEvent("userJJKLoginAuth", {
+        detail: {
+            userName: '',
+            userLevel: 0,
+            userMessage: ''
+        },
+        bubbles: true,
+        cancelable: true
+    });
+    var jjkloginEventElement = document.getElementById("jjkloginEventElement");
 
     //=================================================================================================================
     // Bind events
     $login.on('click', loginRedirect)
-
-    /*
-    const event = new Event('build');
-    // Listen for the event.
-    elem.addEventListener('build', function (e) {  }, false);
-    // Dispatch the event.
-    elem.dispatchEvent(event);
-    let event = new CustomEvent('highlight', {
-        detail: { backgroundColor: 'yellow' }
-    });
-    element.dispatchEvent(event);
-    */
-
-    /*
-    // Define a new event.
-    var SpecialEvent = new CustomEvent(
-        "SpecialMessage",
-        {
-            detail:
-            {
-                message: "Hello There",
-                time: new Date()
-            },
-            bubbles: true,
-            cancelable: true
-        });
-
-    SpecialEvent.detail.message = "A new message!";
-
-    function AssignEvent() {
-        // Obtain the object reference.
-        var Label = document.getElementById("CustomLabel");
-        // Assign an event to the object.
-        Label.addEventListener(
-            "SpecialMessage", HandleEvent, false);
-    }
-
-    function FireEvent() {
-        // Obtain the object reference.
-        var Label = document.getElementById("CustomLabel");
-        // Fire the event.
-        Label.dispatchEvent(SpecialEvent);
-    }
-
-    function HandleEvent(event) {
-        // Display the event information.
-        document.getElementById("CustomLabel").innerHTML =
-            "Control: " + event.currentTarget.id +
-            "<br />Message: " + event.detail.message +
-            "<br />Time sent: " +
-            event.detail.time.toTimeString();
-    }
-    */
-
-    /*
-    var $jjkloginEventElement = $document.find('#jjkloginEventElement')
-    $jjkloginEventElement.on('userJJKLoginAuth', function (event) {
-        console.log('After login, username = '+event.originalEvent.detail.userName);
-    });
-    */
 
     //=================================================================================================================
     // Checks on initial load
@@ -127,7 +79,7 @@ var jjklogin = (function () {
                 $LoggedIn.html('')
             } else {
                 $LoggedIn.html('Logged in as ' + userRec.userName)
-                createJJKLoginEvent(userRec);
+                dispatchJJKLoginEvent(userRec);
             }
         });
     }
@@ -137,21 +89,24 @@ var jjklogin = (function () {
         window.location.href = jjkloginRoot;
     }
 
-    function createJJKLoginEvent(userRec) {
-        var userJJKLoginAuthEvent = new CustomEvent("userJJKLoginAuth", {
-            detail: {
-                userName: '',
-                userLevel: 0,
-                userMessage: ''
-            },
-            bubbles: true,
-            cancelable: true
-        });
-
+    // Dispatch an event to tell calling applications that a user has authenticated
+    function dispatchJJKLoginEvent(userRec) {
         userJJKLoginAuthEvent.detail.userName = userRec.userName;
         userJJKLoginAuthEvent.detail.userLevel = userRec.userLevel;
         userJJKLoginAuthEvent.detail.userMessage = userRec.userMessage;
-        $jjkloginEventElement.dispatchEvent(userJJKLoginAuthEvent);
+
+        jjkloginEventElement.dispatchEvent(userJJKLoginAuthEvent);
+
+        /* Implement the following to use event
+        HTML
+        <div id="jjkloginEventElement"></div>
+
+        JAVASCRIPT
+        var $jjkloginEventElement = $(document).find('#jjkloginEventElement')
+        $jjkloginEventElement.on('userJJKLoginAuth', function (event) {
+            console.log('After login, username = '+event.originalEvent.detail.userName);
+        });
+        */
     }
    
     //=================================================================================================================
