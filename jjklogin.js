@@ -77,6 +77,9 @@ var jjklogin = (function () {
                 userRec.userLevel < 1) {
                 // Nothing for now (don't automatically redirect to Login - make the user choose to login)
                 $LoggedIn.html('')
+                if (userRec.userMessage == 'Redirect to login') {
+                    window.location.href = jjkloginRoot;
+                }
             } else {
                 $LoggedIn.html('Logged in as ' + userRec.userName)
                 dispatchJJKLoginEvent(userRec);

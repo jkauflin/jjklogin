@@ -29,6 +29,10 @@ use \jkauflin\jjklogin\LoginAuth;
 
 try {
     $userRec = LoginAuth::getUserRec($cookieNameJJKLogin,$cookiePathJJKLogin,$serverKeyJJKLogin);
+    if ($autoRedirectJJKLogin && $userRec->userMessage == 'User NOT authenticated') {
+        $userRec->userMessage = 'Redirect to login';
+    }
+
     echo json_encode($userRec);
 
 } catch(Exception $e) {

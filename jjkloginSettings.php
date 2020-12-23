@@ -22,4 +22,9 @@ $scheduledJobKeyJJKLogin = "";
 $domainUrlJJKLogin = 'https://<set to main web site url>';
 $fromEmailAddressJJKLogin = "<set to FROM address for user registration emails>";
 $adminEmailListJJKLogin = "<set to admin email address>";
+
+// Set to true to re-direct un-authenticated users to the login
+// (default is false - don't automatically take them to the login)
+$autoRedirectJJKLogin = false;
+
 ?>

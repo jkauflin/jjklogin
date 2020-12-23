@@ -109,7 +109,7 @@ class LoginAuth
 
     public static function getUserRec($cookieName,$cookiePath,$serverKey) {
         $userRec = new UserRec();
-        $userRec->userMessage = '';
+        $userRec->userMessage = 'User NOT authenticated';
 
         $token = null;
 
