@@ -39,10 +39,71 @@ var jjklogin = (function () {
     var $document = $(document)
     var $login = $document.find('#login')
     var $LoggedIn = $document.find('#username')
+    var $jjkloginEventElement = $document.find('#jjkloginEventElement')
 
     //=================================================================================================================
     // Bind events
     $login.on('click', loginRedirect)
+
+    /*
+    const event = new Event('build');
+    // Listen for the event.
+    elem.addEventListener('build', function (e) {  }, false);
+    // Dispatch the event.
+    elem.dispatchEvent(event);
+    let event = new CustomEvent('highlight', {
+        detail: { backgroundColor: 'yellow' }
+    });
+    element.dispatchEvent(event);
+    */
+
+    /*
+    // Define a new event.
+    var SpecialEvent = new CustomEvent(
+        "SpecialMessage",
+        {
+            detail:
+            {
+                message: "Hello There",
+                time: new Date()
+            },
+            bubbles: true,
+            cancelable: true
+        });
+
+    SpecialEvent.detail.message = "A new message!";
+
+    function AssignEvent() {
+        // Obtain the object reference.
+        var Label = document.getElementById("CustomLabel");
+        // Assign an event to the object.
+        Label.addEventListener(
+            "SpecialMessage", HandleEvent, false);
+    }
+
+    function FireEvent() {
+        // Obtain the object reference.
+        var Label = document.getElementById("CustomLabel");
+        // Fire the event.
+        Label.dispatchEvent(SpecialEvent);
+    }
+
+    function HandleEvent(event) {
+        // Display the event information.
+        document.getElementById("CustomLabel").innerHTML =
+            "Control: " + event.currentTarget.id +
+            "<br />Message: " + event.detail.message +
+            "<br />Time sent: " +
+            event.detail.time.toTimeString();
+    }
+    */
+
+    /*
+    var $jjkloginEventElement = $document.find('#jjkloginEventElement')
+    $jjkloginEventElement.on('userJJKLoginAuth', function (event) {
+        console.log('After login, username = '+event.originalEvent.detail.userName);
+    });
+    */
 
     //=================================================================================================================
     // Checks on initial load
@@ -66,6 +127,7 @@ var jjklogin = (function () {
                 $LoggedIn.html('')
             } else {
                 $LoggedIn.html('Logged in as ' + userRec.userName)
+                createJJKLoginEvent(userRec);
             }
         });
     }
@@ -73,6 +135,23 @@ var jjklogin = (function () {
     // Re-Direct to main page of the jjklogin package (in the package root)
     function loginRedirect () {
         window.location.href = jjkloginRoot;
+    }
+
+    function createJJKLoginEvent(userRec) {
+        var userJJKLoginAuthEvent = new CustomEvent("userJJKLoginAuth", {
+            detail: {
+                userName: '',
+                userLevel: 0,
+                userMessage: ''
+            },
+            bubbles: true,
+            cancelable: true
+        });
+
+        userJJKLoginAuthEvent.detail.userName = userRec.userName;
+        userJJKLoginAuthEvent.detail.userLevel = userRec.userLevel;
+        userJJKLoginAuthEvent.detail.userMessage = userRec.userMessage;
+        $jjkloginEventElement.dispatchEvent(userJJKLoginAuthEvent);
     }
    
     //=================================================================================================================
