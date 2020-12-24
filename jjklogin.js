@@ -94,17 +94,19 @@ var jjklogin = (function () {
 
     // Dispatch an event to tell calling applications that a user has authenticated
     function dispatchJJKLoginEvent(userRec) {
-        userJJKLoginAuthEvent.detail.userName = userRec.userName;
-        userJJKLoginAuthEvent.detail.userLevel = userRec.userLevel;
-        userJJKLoginAuthEvent.detail.userMessage = userRec.userMessage;
+        if (jjkloginEventElement != null) {
+            userJJKLoginAuthEvent.detail.userName = userRec.userName;
+            userJJKLoginAuthEvent.detail.userLevel = userRec.userLevel;
+            userJJKLoginAuthEvent.detail.userMessage = userRec.userMessage;
 
-        jjkloginEventElement.dispatchEvent(userJJKLoginAuthEvent);
+            jjkloginEventElement.dispatchEvent(userJJKLoginAuthEvent);
+        }
 
         /* Implement the following to use event
-        HTML
+        HTML - Declare an element for the event
         <div id="jjkloginEventElement"></div>
 
-        JAVASCRIPT
+        JAVASCRIPT - Respond to the login authentication event
         var $jjkloginEventElement = $(document).find('#jjkloginEventElement')
         $jjkloginEventElement.on('userJJKLoginAuth', function (event) {
             console.log('After login, username = '+event.originalEvent.detail.userName);

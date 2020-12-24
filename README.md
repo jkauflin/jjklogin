@@ -23,7 +23,7 @@ Internally it uses CDN includes for [JQuery](https://jquery.com/) and [Bootstrap
         "require": {
             "php": ">=7.0.0",
             "firebase/php-jwt": "^5.2.0",
-            "jkauflin/jjklogin": "^1.1.0"
+            "jkauflin/jjklogin": "^1.1.4"
         }
     }
 ```
@@ -50,6 +50,7 @@ It could be included in a Bootstrap navigation list:
 If desired, include a DIV with a ``username`` id to display the username after login is authenticated:
 
         <div id="username" class="float-right"></div>
+
 
 ### Javascript use
 After user authentication, a ``userRec`` variable is kept in the javascript, and the following functions are available:
@@ -78,6 +79,20 @@ The javascript ``userRec`` variable is helpful for adjusting the display but add
     if ($userRec->userLevel < 1) {
         throw new Exception('User is NOT authorized (contact Administrator)', 500);
     }
+
+### Login Authentication Event
+An Event for the user login authentication is available.  Simply include the following element in the HTML:
+
+    <div id="jjkloginEventElement"></div>
+
+Then you can add the following javascript to respond to the authentication event:
+
+    var $jjkloginEventElement = $(document).find('#jjkloginEventElement')
+    $jjkloginEventElement.on('userJJKLoginAuth', function (event) {
+        console.log('After login, username = '+
+            event.originalEvent.detail.userName);
+    });
+
 
 ## Security
 This project uses [firebase/php-jwt](https://github.com/firebase/php-jwt) to encode and decode JSON Web Tokens (JWT) in PHP, conforming to RFC 7519. Look in the ``src/LoginAuth.php`` class to see how this project securely uses cookies to store the JWT tokens, including:
