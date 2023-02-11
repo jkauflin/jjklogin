@@ -12,11 +12,11 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "jkauflin\\jjklogin\\": "src/"
+            "jkauflin\\jjklogin\\": "src"
         }
     },
     "require": {
-        "php": ">=7.0.0",
-        "firebase/php-jwt": "^5.2.0"
+        "php": ">=8.0.0",
+        "firebase/php-jwt": "^6.4.0"
     }
 }

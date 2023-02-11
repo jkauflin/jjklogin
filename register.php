@@ -26,6 +26,10 @@ require_once 'commonUtil.php';
 
 use \jkauflin\jjklogin\LoginAuth;
 
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\Email;
+
 try {
     header("Content-Type: application/json; charset=UTF-8");
     $json_str = file_get_contents('php://input');

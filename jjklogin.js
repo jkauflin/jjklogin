@@ -37,9 +37,7 @@ var jjklogin = (function () {
 
     //=================================================================================================================
     // Variables cached from the DOM
-    var $document = $(document)
-    var $login = $document.find('#login')
-    var $LoggedIn = $document.find('#username')
+    var LoggedIn = document.getElementById('LoggedIn')
 
     // Create an event to tell calling applications that a user has authenticated
     var userJJKLoginAuthEvent = new CustomEvent("userJJKLoginAuth", {
@@ -55,33 +53,34 @@ var jjklogin = (function () {
 
     //=================================================================================================================
     // Bind events
-    $login.on('click', loginRedirect)
+    document.getElementById('login').addEventListener('click', loginRedirect)
 
     //=================================================================================================================
     // Checks on initial load
     var urlParam = 'resetPass';
     var results = new RegExp('[\?&]' + urlParam + '=([^&#]*)').exec(window.location.href);
     if (results != null) {
-        var regCode = results[1] || 0;
+        var regCodeResult = results[1] || 0;
         //console.log("regCode = " + regCode);
         // When the password reset request comes to the domain url, pass it to the jjklogin page
-        window.location.href = jjkloginRoot + '?resetPass='+regCode;
+        window.location.href = jjkloginRoot + '?resetPass='+regCodeResult;
     } else {
         // Check for the authentication token when the page loads
         url = jjkloginRoot + 'authentication.php'
-        $.getJSON(url, function (response) {
-            userRec = response
+        fetch(url)
+        .then(response => response.json())
+        .then(userRec => {
             if (userRec == null ||
                 userRec.userName == null ||
                 userRec.userName == '' ||
                 userRec.userLevel < 1) {
                 // Nothing for now (don't automatically redirect to Login - make the user choose to login)
-                $LoggedIn.html('')
+                LoggedIn.innerHTML = ''
                 if (userRec.userMessage == 'Redirect to login') {
                     window.location.href = jjkloginRoot;
                 }
             } else {
-                $LoggedIn.html('Logged in as ' + userRec.userName)
+                LoggedIn.innerHTML = 'Logged in as ' + userRec.userName
                 dispatchJJKLoginEvent(userRec);
             }
         });

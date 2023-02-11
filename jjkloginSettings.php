@@ -19,6 +19,11 @@ $cookieNameJJKLogin = 'jjklogin';
 $serverKeyJJKLogin = "<set to a good long random key string value>";
 $scheduledJobKeyJJKLogin = "";
 
+$mailServer = "SMTP server address";
+$mailPort = 0; // port for SMTP server
+$mailUsername = "username for mail account";
+$mailPassword = "password for mail account"; 
+
 $domainUrlJJKLogin = 'https://<set to main web site url>';
 $fromEmailAddressJJKLogin = "<set to FROM address for user registration emails>";
 $adminEmailListJJKLogin = "<set to admin email address>";

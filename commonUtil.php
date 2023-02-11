@@ -1,159 +1,52 @@
 <?php
 /*==============================================================================
- * (C) Copyright 2015,2020 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2023 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
- * DESCRIPTION: 
+ * DESCRIPTION:  Common utility functions for project
  *----------------------------------------------------------------------------
  * Modification History
- * 2015-03-06 JJK 	Initial version with some common utilities 
- * 2015-09-08 JJK	Added getAdminLevel to return an admin level based on
- *                  username to control updates
- * 2015-10-01 JJK	Added $fromEmailAddress to sendHtmlEMail                
- * 2015-10-20 JJK   Added function wildCardStrFromTokens to build a wild
- * 					card parameter string from the tokens in a string
- * 2016-04-10 JJK	Added calcCompoundInterest to calculate compound 
- * 					interests for the total dues calculation
- * 2016-09-11 JJK   Corrected handling of bad dates for interest calculation
- * 2016-09-11 JJK   Modified the truncDate routine to take the 1st token
- * 					before truncating to 10 characters (to handle bad dates
- * 					like "4/7/2007 0"
- * 2020-08-05 JJK   Removed getAdminLevel and getUsername (in favor of new
- *                  Login/Authentication logic)
- * 2020-09-19 JJK   If using SwiftMailer don't forget to include autoload.php
- * 2020-12-18 JJK   Modified sendHtmlEMail just to use PHP mail function
- *                  and create a new function to use SwiftMailer
+ * 2022-08-29 JJK   Added Symfony Mailer for outgoing email sends using SMTP
+ *                  Added getMailer to create the mailer part
+ *                  and sendMail to create the email and send using the mailer
  *============================================================================*/
 
-function strToUSD($inStr) {
-	// Replace every ascii character except decimal and digits with a null
-	$numericStr = preg_replace('/[\x01-\x2D\x2F\x3A-\x7F]+/', '', $inStr);
-	// Convert to a float value and round down to 2 digits
-	//return round(floatval($numericStr),2,PHP_ROUND_HALF_DOWN);
-	return round(floatval($numericStr),2);
+ use Symfony\Component\Mailer\Transport;
+ use Symfony\Component\Mailer\Mailer;
+ use Symfony\Component\Mime\Email;
+ 
+ function getMailer($mailUsername, $mailPassword, $mailServer, $mailPort) {
+    //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", BEFORE " . PHP_EOL, 3, LOG_FILE);
+
+    // Create a Transport object
+    $transport = Transport::fromDsn('smtp://' . $mailUsername . ':' . $mailPassword . '@' . $mailServer . ':' . $mailPort);
+    // Create a Mailer object
+    $mailer = new Mailer($transport);
+
+	return $mailer;
 }
 
-// Replace comma with null so you can use it as a CSV value
-function csvFilter($inVal) {
-	return preg_replace('/[\x2C]+/', '', String($inVal));
-}
-
-// Set 0 or 1 according to the boolean value of a string
-function paramBoolVal($paramName) {
-	$retBoolean = 0;
-	if (strtolower(getParamVal($paramName)) == 'true') {
-		$retBoolean = 1;
-	}
-	return $retBoolean;
-}
-
-function getParamVal($paramName) {
-	$paramVal = "";
-	if (isset($_REQUEST[$paramName])) {
-		$paramVal = trim(urldecode($_REQUEST[$paramName]));
-		// more input string cleanup ???  invalid characters?
-	}
-	return $paramVal;
-}
-
-function truncDate($inStr) {
-	$outStr = "";
-	if ($inStr != null) {
-		$outStr = strtok($inStr," ");
-		if (strlen($outStr) > 10) {
-			$outStr = substr($outStr,0,10);
-		}
-	}
-	return $outStr;
-}
-
-// Create a wild card parameter string from the tokens in a string
-function wildCardStrFromTokens($inStr) {
-	$string = $inStr;
-	$token = strtok($string, " ");
-	$paramStr = '';
-	while ($token !== false)
-	{
-		$paramStr = $paramStr . '%' . $token;
-		$token = strtok(" ");
-	}
-	$paramStr = $paramStr . '%';
-	//error_log('$paramStr = ' . $paramStr);
-	return $paramStr;
-}
-
-// Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
-function stringToMoney($inAmountStr) {
-	return round(floatval( preg_replace('/[\x01-\x2D\x2F\x3A-\x7F]+/', '', $inAmountStr) ),2);
-}
-
-function sendHtmlEMail($toStr,$subject,$messageStr,$fromEmailAddress) {
+function sendMail($mailer,$toStr,$subject,$messageStr,$fromEmailAddress) {
     try {
     	$message = '<html><head><title>' . $subject .'</title></head><body>' . $messageStr . '</body></html>';
-    	
-    	// Always set content-type when sending HTML email
-    	$headers = "MIME-Version: 1.0" . "\r\n";
-    	$headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
-    	// More headers
-        $headers .= 'From: ' . $fromEmailAddress . "\r\n";
-        
-    	mail($toStr,$subject,$message,$headers);
+
+        $email = (new Email());
+        $email->from($fromEmailAddress);
+        $email->to($toStr);
+        $email->subject($subject);
+        // Set the plain-text "Body"
+        //$email->text('This is the plain text body of the message.\nThanks,\nAdmin');
+        // Set HTML "Body"
+        $email->html($message);
+        // Add an "Attachment"
+        //$email->attachFromPath('/path/to/example.txt');
+        // Add an "Image"
+        //$email->embed(fopen('/path/to/mailor.jpg', 'r'), 'nature');
+
+    	$mailer->send($email);
         return true;
-        
-    } catch(Exception $e) {
-        error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", sendHtmlEMail Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
-        return false;
-    }
-}
-
-function sendSwiftMail($toStr,$subject,$messageStr,$fromEmailAddress,
-                        $attachmentType='application/pdf',$attachmentPath='',$attachmentFiledata=null,
-                        $attachmentFilename='outfilename.pdf',$inlineAttachmentPath='') {
-    try {
-	    $message = '<html><head><title>' . $subject .'</title></head><body>' . $messageStr . '</body></html>';
-        $mimeType = 'text/html';
-
-    	// Create the Transport (using default linux sendmail)
-    	$transport = new Swift_SendmailTransport();
-    	// Create the Mailer using your created Transport
-    	$mailer = new Swift_Mailer($transport);
-
-    	// Create a message
-    	$message = (new Swift_Message($subject))
-    		->setFrom([$fromEmailAddress])
-    		->setTo([$toStr])
-    		->setBody($messageStr,$mimeType);
-
-        if ($attachmentFiledata != null || $attachmentPath != '') {
-            $attachment = null;
-            if ($attachmentFiledata != null) {
-                // Create the attachment with your data
-    	        $attachment = new Swift_Attachment($attachmentFiledata, $attachmentFilename, 'application/pdf');
-            } else {
-                // Create an attachment from a path
-                $attachment = Swift_Attachment::fromPath($attachmentPath);
-                $attachment->setFilename($attachmentFilename);
-            }
-    	    // Attach it to the message
-            $message->attach($attachment);
-        }
-
-        if ($inlineAttachmentPath != '') {
-            // Add inline "Image"
-            $inline_attachment = Swift_Image::fromPath($inlineAttachmentPath);
-            $cid = $message->embed($inline_attachment);
-        }
-         
-    	// Send the message and check for success
-    	if ($mailer->send($message)) {
-            //error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", sendSwiftMail SUCCESS " . PHP_EOL, 3, LOG_FILE);
-            return true;
-    	} else {
-            error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", sendSwiftEMail ERROR " . PHP_EOL, 3, LOG_FILE);
-            return false;
-    	}
 
     } catch(Exception $e) {
-        error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", sendSwiftMail Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
+        error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", sendEMail Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
         return false;
     }
 }

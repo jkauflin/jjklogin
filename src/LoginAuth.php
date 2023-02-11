@@ -1,6 +1,6 @@
 <?php
 /*==============================================================================
- * (C) Copyright 2020 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2020,2023 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
  * DESCRIPTION: PHP functions to interact with a database, and security
  *              components for authentication and login
@@ -293,6 +293,10 @@ class LoginAuth
                     $username . ']:  ' . $domainUrl . '?resetPass=' . $registrationCode;
 
                 //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", messageStr = $messageStr " . PHP_EOL, 3, LOG_FILE);
+
+                // Create a Mailer object for the SMTP transport
+                $mailer = getMailer($mailUsername, $mailPassword, $mailServer, $mailPort);
+                $sendMailSuccess = sendMail($mailer,$email,$subject,$messageStr,$mailUsername);
                 $sendMailSuccess = sendHtmlEMail($email,$subject,$messageStr,$fromEmailAddress);
                 if (!$sendMailSuccess) {
                     $userRec->userMessage = 'User registered successfully (but email FAILED)';
