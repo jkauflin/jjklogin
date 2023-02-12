@@ -1,6 +1,6 @@
 <?php
 /*==============================================================================
- * (C) Copyright 2020 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2020,2023 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
  * DESCRIPTION: Create database user record
  *----------------------------------------------------------------------------
@@ -9,6 +9,7 @@
  * 2020-12-15 JJK   Update for package
  * 2020-12-17 JJK   Corrected separator bug
  * 2020-12-21 JJK   Made the settings variables unique
+ * 2023-02-11 JJK   Re-factor for non-static class and settings from DB
  *============================================================================*/
 // Define a super global constant for the log file (this will be in scope for all functions)
 define("LOG_FILE", "./php.log");
@@ -22,8 +23,6 @@ $webRootDirOffset = substr_count(strstr(dirname(__FILE__),"public_html"),DIRECTO
 $extIncludePath = dirname(__FILE__, $webRootDirOffset+1).DIRECTORY_SEPARATOR.'external_includes'.DIRECTORY_SEPARATOR;
 require_once $extIncludePath.'jjkloginSettings.php';
 
-require_once 'commonUtil.php';
-
 use \jkauflin\jjklogin\LoginAuth;
 
 try {
@@ -31,19 +30,14 @@ try {
     $json_str = file_get_contents('php://input');
     $param = json_decode($json_str);
 
-    $userRec = LoginAuth::initUserRec();
+    $loginAuth = new LoginAuth($hostJJKLogin, $dbadminJJKLogin, $passwordJJKLogin, $dbnameJJKLogin);
+    $userRec = $loginAuth->initUserRec();
+
     if (empty($param->usernameReset) && empty($param->emailAddrReset)) {
         $userRec->userMessage = 'Username or Email address is required';
     } else {
-    	// User variables set in the db connection credentials include and open a connection
-    	$conn = new mysqli($hostJJKLogin, $dbadminJJKLogin, $passwordJJKLogin, $dbnameJJKLogin);
-    	// Check connection
-    	if ($conn->connect_error) {
-            error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", Connection failed: " . $conn->connect_error . PHP_EOL, 3, LOG_FILE);
-    		die("Connection failed: " . $conn->connect_error);
-    	}
-        $userRec = LoginAuth::resetPassword($conn,$cookieNameJJKLogin,$cookiePathJJKLogin,$serverKeyJJKLogin,$param,$fromEmailAddressJJKLogin,$domainUrlJJKLogin);
-        $conn->close();
+        $userRec = $loginAuth->resetPassword($param);
+        //LoginAuth::resetPassword($conn,$cookieNameJJKLogin,$cookiePathJJKLogin,$serverKeyJJKLogin,$param,$fromEmailAddressJJKLogin,$domainUrlJJKLogin);
     }
 
     echo json_encode($userRec);

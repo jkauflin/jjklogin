@@ -1,5 +1,5 @@
 /*==============================================================================
- * (C) Copyright 2020 John J Kauflin, All rights reserved.
+ * (C) Copyright 2020,2023 John J Kauflin, All rights reserved.
  *----------------------------------------------------------------------------
  * DESCRIPTION:  Login authentication and authorization handling based on
  *               credentials stored in JWT Tokens, saved in HttpOnly, Secure,
@@ -13,7 +13,6 @@
  *
  * top level app must include JWT-PHP library in it's composer
  * and include and call jjklogin PHP functions?
- * $cookiePath = '/grha/hoadb';
  *
  *----------------------------------------------------------------------------
  * Modification History
@@ -25,6 +24,8 @@
  * 2020-12-13 JJK   Updated to be a Composer package.  Move the set of the
  *                  jjkloginRoot to the parent page
  * 2020-12-22 JJK   Added login event userJJKLoginAuth
+ * 2023-02-11 JJK   Re-factored for Bootstrap 5 and get rid of JQuery in 
+ *                  favor of vanilla JS
  *============================================================================*/
 var jjklogin = (function () {
     'use strict'
@@ -76,7 +77,7 @@ var jjklogin = (function () {
                 userRec.userLevel < 1) {
                 // Nothing for now (don't automatically redirect to Login - make the user choose to login)
                 LoggedIn.innerHTML = ''
-                if (userRec.userMessage == 'Redirect to login') {
+                if (userRec.autoRedirect) {
                     window.location.href = jjkloginRoot;
                 }
             } else {
@@ -106,8 +107,9 @@ var jjklogin = (function () {
         <div id="jjkloginEventElement"></div>
 
         JAVASCRIPT - Respond to the login authentication event
-        var $jjkloginEventElement = $(document).find('#jjkloginEventElement')
-        $jjkloginEventElement.on('userJJKLoginAuth', function (event) {
+        var jjkloginEventElement = document.getElementById("jjkloginEventElement");
+
+        jjkloginEventElement.addEventListener('userJJKLoginAuth', function (event) {
             console.log('After login, username = '+event.originalEvent.detail.userName);
         });
         */

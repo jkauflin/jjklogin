@@ -13,29 +13,94 @@
  * 2020-08-04 JJK   Added setPassword, resetPassword, and setUserToken
  * 2020-08-11 JJK   Corrected the cookie/jwt expiration to be 30 days
  * 2020-12-17 JJK   Updated for composer package and general use
+ * 2023-02-11 JJK   Updated to use non-static functions, a constructor for
+ *                  database credentials, and to use the database for
+ *                  settings.  Added the mail functions here as well
+ * 2023-02-12 JJK   Updated for new Firebase\JWT v6.4.0 Key concept
  *============================================================================*/
 namespace jkauflin\jjklogin;
 
+use Exception;
+use mysqli;
 // Library class for JWT authentication work (includes are in the calling PHP using autoload)
 use \Firebase\JWT\JWT;
+use \Firebase\JWT\Key;
+
+// Library classes to send email
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\Email;
+
 
 class UserRec
 {
 	public $userName;
     public $userLevel;
     public $userMessage;
+    public $autoRedirect;
 }
 
 class LoginAuth
 {
-    public static function initUserRec() {
+    private $dbHost;
+    private $dbAdmin;
+    private $dbPassword;
+    private $dbName;
+
+    private $CookiePath;
+    private $CookieName;
+    private $ServerKey;
+    private $DomainUrl;
+    
+    private $MailServer;
+    private $MailPort;
+    private $MailUser;
+    private $MailPass;
+
+    private $AutoRedirect;
+
+    function __construct($dbHost,$dbAdmin,$dbPassword,$dbName) {
+        $this->dbHost = $dbHost;
+        $this->dbAdmin = $dbAdmin;
+        $this->dbPassword = $dbPassword;
+        $this->dbName = $dbName;
+
+        $conn = new mysqli($this->dbHost,$this->dbAdmin,$this->dbPassword,$this->dbName);
+        // Check connection
+        if ($conn->connect_error) {
+            error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", Connection failed: " . $conn->connect_error . PHP_EOL, 3, LOG_FILE);
+        	die("Connection failed: " . $conn->connect_error);
+        }
+
+        $sql = "SELECT * FROM jjkloginSettings WHERE SettingsId = 1 ";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $this->CookiePath = $row["CookiePath"];
+            $this->CookieName = $row["CookieName"];
+            $this->ServerKey = $row["ServerKey"];
+            $this->DomainUrl = $row["DomainUrl"];
+            $this->MailServer = $row["MailServer"];
+            $this->MailPort = $row["MailPort"];
+            $this->MailUser = $row["MailUser"];
+            $this->MailPass = $row["MailPass"];
+            $this->AutoRedirect = $row["AutoRedirect"];
+        }
+            
+        $stmt->close();
+        $conn->close();
+    }
+
+    public function initUserRec() {
         return new UserRec();
     }
 
-    private static function setUserToken($cookieName,$cookiePath,$serverKey,$UserId,$UserName,$UserLevel) {
+    private function setUserToken($UserId,$UserName,$UserLevel) {
         try {
-            if(isset($_COOKIE[$cookieName])) {
-                unset($_COOKIE[$cookieName]);
+            if(isset($_COOKIE[$this->CookieName])) {
+                unset($_COOKIE[$this->CookieName]);
             }
 
             // create a token
@@ -45,24 +110,31 @@ class LoginAuth
             $payloadArray['userLevel'] = $UserLevel;
             $payloadArray['exp'] = time()+60*60*24*30;  // 30 days
 
-            $token = JWT::encode($payloadArray, $serverKey);
+            $token = JWT::encode($payloadArray, $this->ServerKey, 'HS256');
 
-            setcookie($cookieName, $token, [
+            setcookie($this->CookieName, $token, [
                 'expires' =>  time()+60*60*24*30,  // 30 days
-                'path' => $cookiePath,
+                'path' => $this->CookiePath,
                 'samesite' => 'strict',
                 //'secure' => TRUE,     // This will be the default on sites using HTTPS
                 'httponly' => TRUE
             ]);
         }
         catch(Exception $e) {
-            //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
+            error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
         }
     }
 
-    public static function setUserCookie($conn,$cookieName,$cookiePath,$serverKey,$param) {
+    public function setUserCookie($param) {
         $userRec = new UserRec();
         $userRec->userMessage = 'Username not found';
+
+        $conn = new mysqli($this->dbHost,$this->dbAdmin,$this->dbPassword,$this->dbName);
+        // Check connection
+        if ($conn->connect_error) {
+            error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", Connection failed: " . $conn->connect_error . PHP_EOL, 3, LOG_FILE);
+        	die("Connection failed: " . $conn->connect_error);
+        }
 
         $username = mysqli_real_escape_string($conn, $param->username);
 
@@ -73,13 +145,14 @@ class LoginAuth
         $result = $stmt->get_result();
         $user = mysqli_fetch_assoc($result);
         $stmt->close();
+        $conn->close();
 
         if ($user) {
             if ($user['UserLevel'] < 1) {
                 $userRec->userMessage = 'User is not authorized (contact Administrator)';
             } else {
                 if (password_verify($param->password, $user['UserPassword'])) {
-                    self::setUserToken($cookieName,$cookiePath,$serverKey,$user['UserId'],$user['UserName'],$user['UserLevel']);
+                    $this->setUserToken($user['UserId'],$user['UserName'],$user['UserLevel']);
                     $userRec->userName = $user['UserName'];
                     $userRec->userLevel = $user['UserLevel'];
                 } else {
@@ -91,35 +164,41 @@ class LoginAuth
         return $userRec;
     }
 
-    public static function deleteUserCookie($cookieName,$cookiePath) {
-        //error_log(date('[Y-m-d H:i] '). "in deleteUserCookie, at BEGINNING" . PHP_EOL, 3, LOG_FILE);
-        if(isset($_COOKIE[$cookieName])) {
+    public function deleteUserCookie() 
+    {
+        $userRec = new UserRec();
+        $userRec->userMessage = 'User NOT authenticated';
+
+        if(isset($_COOKIE[$this->CookieName])) {
             // If set, expire and unset
-            setcookie($cookieName, "", [
+            setcookie($this->CookieName, "", [
                 'expires' => time()-3600,
-                'path' => $cookiePath,
+                'path' => $this->CookiePath,
                 'samesite' => 'strict',
                 //'secure' => TRUE,     // This will be the default on sites using HTTPS
                 'httponly' => TRUE
             ]);
 
-            unset($_COOKIE[$cookieName]);
+            unset($_COOKIE[$this->CookieName]);
         }
+        
+        return $userRec;
     }
 
-    public static function getUserRec($cookieName,$cookiePath,$serverKey) {
+    public function getUserRec() {
         $userRec = new UserRec();
         $userRec->userMessage = 'User NOT authenticated';
+        $userRec->autoRedirect = $this->AutoRedirect;
 
         $token = null;
 
-        if(isset($_COOKIE[$cookieName])) {
-            $token = $_COOKIE[$cookieName];
+        if (isset($_COOKIE[$this->CookieName])) {
+            $token = $_COOKIE[$this->CookieName];
 
             if (!is_null($token)) {
                 try {
-                    $payload = JWT::decode($token, $serverKey, array('HS256'));
-
+                    $payload = JWT::decode($token, new Key($this->ServerKey, 'HS256'));
+                    
                     //$currTime = mktime();
                     //error_log(date('[Y-m-d H:i] '). "in getUserRec, exp = $payload->exp, currTime = $currTime" . PHP_EOL, 3, LOG_FILE);
                     // [2020-07-29 02:28] in getUserRec, exp = 1609455601, currTime = 1595982502
@@ -131,7 +210,7 @@ class LoginAuth
                     // If the token is expired, the JWT::decode will throw an exception
                     if (strpos($e,"Expired") || strpos($e,"expired")) {
                         // if expired, delete the cookie
-                        deleteUserCookie($cookieName,$cookiePath);
+                        $this->deleteUserCookie();
                     } else {
                         error_log(date('[Y-m-d H:i] '). "in getUserRec, exception in decode = $e" . PHP_EOL, 3, LOG_FILE);
                     }
@@ -142,11 +221,18 @@ class LoginAuth
         return $userRec;
     }
 
-    public static function resetPassword($conn,$cookieName,$cookiePath,$serverKey,$param,$fromEmailAddress,$domainUrl) {
+    public function resetPassword($param) {
         $userRec = new UserRec();
         $userRec->userMessage = 'Error in request';
         
         try {
+            $conn = new mysqli($this->dbHost,$this->dbAdmin,$this->dbPassword,$this->dbName);
+            // Check connection
+            if ($conn->connect_error) {
+                error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", Connection failed: " . $conn->connect_error . PHP_EOL, 3, LOG_FILE);
+                die("Connection failed: " . $conn->connect_error);
+            }
+
             $username = mysqli_real_escape_string($conn, $param->usernameReset);
             $emailAddr = mysqli_real_escape_string($conn, $param->emailAddrReset);
 
@@ -168,6 +254,7 @@ class LoginAuth
             $result = $stmt->get_result();
             $user = mysqli_fetch_assoc($result);
             $stmt->close();
+            $conn->close();
 
         /*
             1	UserId Primary	int(7)			No	None	AUTO_INCREMENT	Change Change	Drop Drop	
@@ -188,26 +275,34 @@ class LoginAuth
                 } else {
                     $subject = "Password Reset";
                     $messageStr = 'Click the following to enter a new password for username [' . $user['UserName'] . ']:  ' 
-                        . $domainUrl . '?resetPass=' . $user['RegistrationCode'];
+                        . $this->DomainUrl . '?resetPass=' . $user['RegistrationCode'];
 
-                    //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", messageStr = $messageStr " . PHP_EOL, 3, LOG_FILE);
-                    sendHtmlEMail($user['UserEmailAddr'],$subject,$messageStr,$fromEmailAddress);
-
-                    $userRec->userMessage = 'Reset password verification sent to your email address';
+                    $sendMailSuccess = $this->sendMail($user['UserEmailAddr'],$subject,$messageStr);
+                    if (!$sendMailSuccess) {
+                        $userRec->userMessage = 'Error sending email for reset password verification';
+                    } else {
+                        $userRec->userMessage = 'Reset password verification sent to your email address';
+                    }
                 }
             }
-
         }
         catch(Exception $e) {
-            //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
+            error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
         }
 
         return $userRec;
     }
 
-    public static function setPassword($conn,$cookieName,$cookiePath,$serverKey,$param) {
+    public function setPassword($param) {
         $userRec = new UserRec();
         $userRec->userMessage = 'Error in request';
+
+        $conn = new mysqli($this->dbHost,$this->dbAdmin,$this->dbPassword,$this->dbName);
+        // Check connection
+        if ($conn->connect_error) {
+            error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", Connection failed: " . $conn->connect_error . PHP_EOL, 3, LOG_FILE);
+        	die("Connection failed: " . $conn->connect_error);
+        }
 
         $regCode = mysqli_real_escape_string($conn, $param->regCode);
         $password = mysqli_real_escape_string($conn, $param->password_1);
@@ -236,24 +331,35 @@ class LoginAuth
                 $stmt->execute();
                 $stmt->close();
 
-                self::setUserToken($cookieName,$cookiePath,$serverKey,$user['UserId'],$user['UserName'],$user['UserLevel']);
+                $this->setUserToken($user['UserId'],$user['UserName'],$user['UserLevel']);
 
                 $userRec->userName = $user['UserName'];
                 $userRec->userLevel = $user['UserLevel'];
+
+                // level is 0  and userMessage is still Error in Request
 
             } else {
                 $userRec->userMessage = 'User not found for this Registration Code';
             }
         }
 
+        $conn->close();
+
         return $userRec;
     }
 
-    public static function registerUser($conn,$cookieName,$cookiePath,$serverKey,$param,$fromEmailAddress,$domainUrl) {
+    public function registerUser($param) {
         $userRec = new UserRec();
         $userRec->userMessage = 'Error in request';
 
         try {
+            $conn = new mysqli($this->dbHost,$this->dbAdmin,$this->dbPassword,$this->dbName);
+            // Check connection
+            if ($conn->connect_error) {
+                error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", Connection failed: " . $conn->connect_error . PHP_EOL, 3, LOG_FILE);
+                die("Connection failed: " . $conn->connect_error);
+            }
+    
             $username = mysqli_real_escape_string($conn, $param->usernameReg);
 
             $sql = "SELECT * FROM users WHERE UserName = ? ";
@@ -273,8 +379,8 @@ class LoginAuth
                 $password = password_hash($tempPassword, PASSWORD_DEFAULT);
                 // sanitizing email(Remove unexpected symbol like <,>,?,#,!, etc.)
                 $email = filter_var($param->emailAddrReg, FILTER_SANITIZE_EMAIL); 
-                // Default the user level to 0 (Leave it up to Admin to manually change in database)
-                $userLevel = 0;
+                // Default the user level to 1 (Leave it up to Admin to manually change in database)
+                $userLevel = 1;
 
                 $sql = 'INSERT INTO users (UserEmailAddr,UserPassword,UserName,UserLevel,RegistrationCode) VALUES(?,?,?,?,?); ';
                 $stmt = $conn->prepare($sql);
@@ -290,26 +396,54 @@ class LoginAuth
                 // Send email
                 $subject = "User Registration";
                 $messageStr = 'A new user account has been created for you.  Click the following to enter a new password for username [' . 
-                    $username . ']:  ' . $domainUrl . '?resetPass=' . $registrationCode;
-
-                //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", messageStr = $messageStr " . PHP_EOL, 3, LOG_FILE);
+                    $username . ']:  ' . $this->DomainUrl . '?resetPass=' . $registrationCode;
 
                 // Create a Mailer object for the SMTP transport
-                $mailer = getMailer($mailUsername, $mailPassword, $mailServer, $mailPort);
-                $sendMailSuccess = sendMail($mailer,$email,$subject,$messageStr,$mailUsername);
-                $sendMailSuccess = sendHtmlEMail($email,$subject,$messageStr,$fromEmailAddress);
+                $sendMailSuccess = $this->sendMail($email,$subject,$messageStr);
                 if (!$sendMailSuccess) {
                     $userRec->userMessage = 'User registered successfully (but email FAILED)';
                 } else {
                     $userRec->userMessage = 'User registered successfully (and email sent)';
                 }
             }
+
+            $conn->close();
         }
         catch(Exception $e) {
             //error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
         }
 
         return $userRec;
+    }
+
+    private function sendMail($toStr,$subject,$messageStr) {
+        try {
+            $message = '<html><head><title>' . $subject .'</title></head><body>' . $messageStr . '</body></html>';
+    
+            $email = (new Email());
+            $email->from($this->MailUser);
+            $email->to($toStr);
+            $email->subject($subject);
+            // Set the plain-text "Body"
+            //$email->text('This is the plain text body of the message.\nThanks,\nAdmin');
+            // Set HTML "Body"
+            $email->html($message);
+            // Add an "Attachment"
+            //$email->attachFromPath('/path/to/example.txt');
+            // Add an "Image"
+            //$email->embed(fopen('/path/to/mailor.jpg', 'r'), 'nature');
+    
+            // Create a Transport object
+            $transport = Transport::fromDsn('smtp://' . $this->MailUser . ':' . $this->MailPass . '@' . $this->MailServer . ':' . $this->MailPort);
+            // Create a Mailer object
+            $mailer = new Mailer($transport);
+            $mailer->send($email);
+            return true;
+    
+        } catch(Exception $e) {
+            error_log(date('[Y-m-d H:i:s] '). "in " . basename(__FILE__,".php") . ", sendEMail Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
+            return false;
+        }
     }
 
 } // class LoginAuth
