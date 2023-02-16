@@ -17,6 +17,7 @@
     },
     "require": {
         "php": ">=8.0.0",
+        "symfony/mailer": "^6.1",
         "firebase/php-jwt": "^6.4.0"
     }
 }

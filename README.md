@@ -24,7 +24,7 @@ Internally it uses CDN includes for [Bootstrap](https://getbootstrap.com/docs/5.
             "php": ">=8.0.0",
             "symfony/mailer": "^6.1",
             "firebase/php-jwt": "^6.4.0",
-            "jkauflin/jjklogin": "^1.2.1"
+            "jkauflin/jjklogin": "^1.2.3"
         }
     }
 ```
