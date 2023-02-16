@@ -26,6 +26,10 @@
  * 2020-12-22 JJK   Added login event userJJKLoginAuth
  * 2023-02-11 JJK   Re-factored for Bootstrap 5 and get rid of JQuery in 
  *                  favor of vanilla JS
+ * 2023-02-15 JJK   Removed set of LogginIn element and functions to return
+ *                  user values for better abstraction.  Expectation is that
+ *                  calling page and JS will define the jjkloginEventElement
+ *                  and handle the userJJKLoginAuth event to get user values
  *============================================================================*/
 var jjklogin = (function () {
     'use strict'
@@ -33,12 +37,16 @@ var jjklogin = (function () {
     //=================================================================================================================
     // Private variables for the Module
     var jjkloginRoot = "vendor/jkauflin/jjklogin/";
-    var userRec = null
+    var tempPath = window.location.pathname;
+    var strPos = tempPath.indexOf('/vendor');
+    if (strPos >= 0) {
+        jjkloginRoot = tempPath.substring(0,strPos+1) + jjkloginRoot;
+    }
     var url
 
     //=================================================================================================================
     // Variables cached from the DOM
-    var LoggedIn = document.getElementById('LoggedIn')
+    var jjkloginEventElement = document.getElementById("jjkloginEventElement");
 
     // Create an event to tell calling applications that a user has authenticated
     var userJJKLoginAuthEvent = new CustomEvent("userJJKLoginAuth", {
@@ -50,7 +58,6 @@ var jjklogin = (function () {
         bubbles: true,
         cancelable: true
     });
-    var jjkloginEventElement = document.getElementById("jjkloginEventElement");
 
     //=================================================================================================================
     // Bind events
@@ -74,15 +81,34 @@ var jjklogin = (function () {
             if (userRec == null ||
                 userRec.userName == null ||
                 userRec.userName == '' ||
-                userRec.userLevel < 1) {
-                // Nothing for now (don't automatically redirect to Login - make the user choose to login)
-                LoggedIn.innerHTML = ''
+                userRec.userLevel < 1) 
+            {
+                // If configured, redirect to the login if user is not authenticated
                 if (userRec.autoRedirect) {
                     window.location.href = jjkloginRoot;
                 }
             } else {
-                LoggedIn.innerHTML = 'Logged in as ' + userRec.userName
-                dispatchJJKLoginEvent(userRec);
+                //LoggedIn.innerHTML = 'Logged in as ' + userRec.userName
+                //dispatchJJKLoginEvent(userRec);
+                if (jjkloginEventElement != null) {
+                    userJJKLoginAuthEvent.detail.userName = userRec.userName;
+                    userJJKLoginAuthEvent.detail.userLevel = userRec.userLevel;
+                    userJJKLoginAuthEvent.detail.userMessage = userRec.userMessage;
+        
+                    jjkloginEventElement.dispatchEvent(userJJKLoginAuthEvent);
+                }
+        
+                /* Implement the following to use event
+                HTML - Declare an element for the event
+                <div id="jjkloginEventElement"></div>
+        
+                JAVASCRIPT - Respond to the login authentication event
+                var jjkloginEventElement = document.getElementById("jjkloginEventElement");
+        
+                jjkloginEventElement.addEventListener('userJJKLoginAuth', function (event) {
+                    console.log('After login, username = '+event.originalEvent.detail.userName);
+                });
+                */
             }
         });
     }
@@ -92,64 +118,8 @@ var jjklogin = (function () {
         window.location.href = jjkloginRoot;
     }
 
-    // Dispatch an event to tell calling applications that a user has authenticated
-    function dispatchJJKLoginEvent(userRec) {
-        if (jjkloginEventElement != null) {
-            userJJKLoginAuthEvent.detail.userName = userRec.userName;
-            userJJKLoginAuthEvent.detail.userLevel = userRec.userLevel;
-            userJJKLoginAuthEvent.detail.userMessage = userRec.userMessage;
-
-            jjkloginEventElement.dispatchEvent(userJJKLoginAuthEvent);
-        }
-
-        /* Implement the following to use event
-        HTML - Declare an element for the event
-        <div id="jjkloginEventElement"></div>
-
-        JAVASCRIPT - Respond to the login authentication event
-        var jjkloginEventElement = document.getElementById("jjkloginEventElement");
-
-        jjkloginEventElement.addEventListener('userJJKLoginAuth', function (event) {
-            console.log('After login, username = '+event.originalEvent.detail.userName);
-        });
-        */
-    }
-   
-    //=================================================================================================================
-    // Module methods
-
-    function getUserName () {
-        if (userRec != null) {
-            return userRec.userName
-        } else {
-            return null
-        }
-    }
-    function getUserLevel () {
-        if (userRec != null) {
-            return userRec.userLevel
-        } else {
-            return null
-        }
-    }
-
-    function isUserLoggedIn() {
-        if (userRec == null ||
-            userRec.userName == null ||
-            userRec.userName == '' ||
-            userRec.userLevel < 1
-        ) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     //=================================================================================================================
     // This is what is exposed from this Module
     return {
-        getUserName,
-        getUserLevel,
-        isUserLoggedIn
     }
 })() // var jjklogin = (function(){

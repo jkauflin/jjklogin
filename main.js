@@ -264,42 +264,8 @@ var jjkloginMain = (function () {
         });
     }
     
-    /*
-    function getUserName () {
-        if (userRec != null) {
-            return userRec.userName
-        } else {
-            return null
-        }
-    }
-    function getUserLevel () {
-        if (userRec != null) {
-            return userRec.userLevel
-        } else {
-            return null
-        }
-    }
-
-    function isUserLoggedIn() {
-        if (userRec == null ||
-            userRec.userName == null ||
-            userRec.userName == '' ||
-            userRec.userLevel < 1
-        ) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-    */
-
     //=================================================================================================================
     // This is what is exposed from this Module
     return {
-        /*
-        getUserName,
-        getUserLevel,
-        isUserLoggedIn
-        */
     }
 })() // var jjkloginMain = (function(){

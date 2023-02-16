@@ -58,6 +58,7 @@ class LoginAuth
     private $MailPass;
 
     private $AutoRedirect;
+    private $ExpirationDays;
 
     function __construct($dbHost,$dbAdmin,$dbPassword,$dbName) {
         $this->dbHost = $dbHost;
@@ -87,6 +88,7 @@ class LoginAuth
             $this->MailUser = $row["MailUser"];
             $this->MailPass = $row["MailPass"];
             $this->AutoRedirect = $row["AutoRedirect"];
+            $this->ExpirationDays = $row["ExpirationDays"];
         }
             
         $stmt->close();
@@ -108,12 +110,12 @@ class LoginAuth
             $payloadArray['userId'] = $UserId;
             $payloadArray['userName'] = $UserName;
             $payloadArray['userLevel'] = $UserLevel;
-            $payloadArray['exp'] = time()+60*60*24*30;  // 30 days
+            $payloadArray['exp'] = time()+60*60*24*$this->ExpirationDays;  // 30 days
 
             $token = JWT::encode($payloadArray, $this->ServerKey, 'HS256');
 
             setcookie($this->CookieName, $token, [
-                'expires' =>  time()+60*60*24*30,  // 30 days
+                'expires' =>  time()+60*60*24*$this->ExpirationDays,  // 30 days
                 'path' => $this->CookiePath,
                 'samesite' => 'strict',
                 //'secure' => TRUE,     // This will be the default on sites using HTTPS

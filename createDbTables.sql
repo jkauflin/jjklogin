@@ -31,8 +31,10 @@ CREATE TABLE `jjkloginSettings` (
   `MailPort` int(11) NOT NULL,
   `MailUser` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
   `MailPass` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `AutoRedirect` tinyint(1) NOT NULL
+  `AutoRedirect` tinyint(1) NOT NULL,
+  `ExpirationDays` int(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 ALTER TABLE `jjkloginSettings`
   ADD PRIMARY KEY (`SettingsId`);
